@@ -95,18 +95,35 @@ class TableHandler:
         else:
             return 0
     
-    def __init__(self, path_to_table: str, headers: List[str], 
-                 headersGrades: List[str], headersTestScore: List[str], 
+    
+    
+    def __init__(self, 
+                 path_to_table: str,
+                 headersGrades: List[str], 
+                 headersTestScore: List[str], 
                  headerNamesStudents: str = ""):
+        """
+        Конструктор для обработки таблицы
+
+        Args:
+            path_to_table: str Путь к таблице.
+            headersGrades: List[str] Оценки студентов по тестам
+            headersTestScore: List[str] Оценки тестов студентами.
+
+        Raise:
+            - 1: Количество вопросов не совпадает с количеством оценок тестов.
+            - 2: Количество вопросов не может быть нулевым, проверь таблицу
+            - 3: Предоставленный файл не является формата .xlsx.
+            - 4: Вопросы или оценки тестов не находятся в заголовках таблицы.
+        """
+        headers = headersGrades + headersTestScore
         
         TableHandler.check_table(path_to_table, headers, 
                                  headersGrades, headersTestScore)
 
-        self.__headers = list(headers)
-
         self.__headersGradesStudents = list(headersGrades)
         self.__headersTestScore = list(headersTestScore)
-
+        self.__headerStudentsName = headerNamesStudents
         self.__data_table = pd.read_excel(path_to_table)
 
         try:
@@ -232,7 +249,8 @@ class TableHandler:
         return TableHandler.createTableToViewWith__Sum_Avg_Round(self.__data_table, self.__headersTestScore, self.__names, nameColumnStuneds, nameHeadersColumn_Sum_Average_Round, nameHeadersString_Max_Sum_Average)
     
     
-    def export_PngPieBRSO(self, fileToExport: str = "BRSOpie.png",
+    def export_PngPieBRSO(self, 
+                          fileToExport: str = "BRSOpie.png",
                           nameHeader = 'Средняя успеваемость по БРСО',
                           colors: List[str] =['c', 'moccasin', 'sienna', 
                                               'silver', 'gold']
@@ -242,6 +260,8 @@ class TableHandler:
         названием BRSOpie.png, где находится программа. При необходимости 
         параметр fileToExport можно изменить.
         
+        Raise:
+            - Файл {fileToExport} уже существует      
 
         Args:
             - fileToExport - название файла и место куда его нужно экспортировать
@@ -255,6 +275,9 @@ class TableHandler:
         Return:
             - None;
         """
+        if os.path.isfile(fileToExport):
+                raise FileExistsError(f"Файл {fileToExport} уже существует")
+            
         roundGrades = self.createTableGradesStudents().iloc[:, -1].to_list()
 
         gradesSet = set(roundGrades)
@@ -287,6 +310,8 @@ class TableHandler:
         названием OTSpie.png, где находится программа. При необходимости 
         параметр fileToExport можно изменить.
         
+        Raise:
+            - "Файл {fileToExport} уже существует"
         Args:
             - fileToExport - название файла и место куда его нужно экспортировать
             (.png). По умолчанию OTSpie.png
@@ -298,6 +323,10 @@ class TableHandler:
         Return:
             - None;
         """
+        
+        if os.path.isfile(fileToExport):
+            raise FileExistsError(f"Файл {fileToExport} уже существует")
+        
         roundGrades = self.createTableGradesTest().iloc[:, -1].to_list()
 
         gradesSet = set(roundGrades)
@@ -391,6 +420,10 @@ class TableHandler:
         По умолчанию экспортирует диаграмму популярности тестов файл с названием
         popularityTests.png, где находится программа. При необходимости параметр 
         fileToExport можно изменить.
+
+        Raise:
+            - Файл {fileToExport} уже существует.
+            - Количество заголовков не верно для графика, нужно 3.
         
         Args:
             - fileToExport - название файла и место куда его нужно экспортировать
@@ -403,6 +436,9 @@ class TableHandler:
         Return:
             - None;
         """
+        if os.path.isfile(fileToExport):
+            raise FileExistsError(f"Файл {fileToExport} уже существует")
+        
         if(len(namesHeader) != 3):
             raise BadNameHeaders("Количество заголовков не верно для графика, нужно 3, у тебя" + str(len(namesHeader)))
         
@@ -451,6 +487,8 @@ class TableHandler:
         Return:
             - None;
         """
+        if os.path.isfile(fileToExportEducationMotivation) or os.path.isfile(fileToExportMotivationEducation):
+            raise FileExistsError(f"Файл {fileToExportEducationMotivation} или {fileToExportMotivationEducation} уже существует.")
         if(len(namesHeaders) != 3):
             raise BadNameHeaders("Количество заголовков не верно, нужно 3, у тебя" + str(len(namesHeaders)))
         
@@ -513,6 +551,10 @@ class TableHandler:
         где находится программа. При необходимости параметр место экспорта можно 
         изменить.
         
+        Raise:
+            - Файл {fileToExport} уже существует
+            - Количество уникальныъ значений typesBenefitsForPng и typesBenefitsInTable должно быть одинаковым
+            - Количество названий в titleAndLabels неправильное. Должно быть 3
         CONST_STEP = 4, параметр для шага в графике по оси y
         Args:
             - fileToExport: str = "benefits.png" - название файла и место куда 
@@ -529,7 +571,10 @@ class TableHandler:
             - None;
         """
         
-        if len(typesBenefitsForPng) != len(typesBenefitsInTable) or len(set(typesBenefitsInTable)) != len(set(typesBenefitsInTable)):
+        if os.path.isfile(fileToExport):
+            raise FileExistsError(f"Файл {fileToExport} уже существует")
+        
+        if len(set(typesBenefitsInTable)) != len(set(typesBenefitsForPng)) or len(typesBenefitsForPng) != len(set(typesBenefitsInTable)):
             raise BadNameHeaders("typesBenefitsForPng и typesBenefitsInTable должны быть одинаковыми")
         
         if len(titleAndLabels) != 3:
@@ -745,7 +790,6 @@ class TableHandler:
     def export_TableConclusion(self, 
                                nameFileForExport: str = "Сonclusion.xlsx", 
                                pathForExport: str = "./",
-                               nameColumnStudents: str = "Students",
                                nameHeadersColumn_Sum_Average_Round: List[str] = ["Sum", f"Average {GRADE_CONVERTED}", f"Round {ROUND_FACTOR}"],
                                nameHeadersString_Max_Sum_Average: List[str] = ['Max', 'Sum', 'Average', f"Average {GRADE_CONVERTED}"],
                                nameHeaders_LSI_LTI: List[str] = ["LSI", "LTI"]
@@ -783,6 +827,7 @@ class TableHandler:
         Return:
             - Таблица pd.DataFrame со всеми выводами
         """
+        nameColumnStudents = self.__headerStudentsName
         
         os.makedirs(pathForExport, exist_ok=True)
         
@@ -835,7 +880,7 @@ class TableHandler:
             - None.
         """
         if(len(set(namesFiles)) != len(namesFiles) or len(namesFiles) != 6):
-            raise BadNameHeaders("Названия не уникальны или количество имён не равно пяти")
+            raise BadNameHeaders("Названия не уникальны или количество имён не равно шести")
         
         
         os.makedirs(pathForExport, exist_ok=True)
@@ -844,10 +889,6 @@ class TableHandler:
         
         for i in namesFiles:
             file = os.path.join(pathForExport, i)
-            
-            if os.path.isfile(file):
-                raise FileExistsError(f"Файл {file} уже существует")
-            
             files.append(file)
         
         self.export_PngPieBRSO(files[0])
@@ -862,6 +903,56 @@ class TableHandler:
         
         return None
         
+    def export_PngConclussionWithoutBenefits(self, 
+                              pathForExport: str = "./", 
+                              namesFiles: List[str] = ["BRSO.png", "OTS.png", "Popularity.png", "Motivation.png", "Education.png"],
+                              ) -> None:
+        """
+        Экспортирует все выводы в указанную папку. Если ничего не указать, 
+        экспортирует всё в основную папку.
+        
+        Args:
+            - pathForExport: str - Папка для экспорта
+            - namesFiles: List[str] = ["BRSO.png", "OTS.png", "Benefits.png", 
+            "Popularity.png", "Motivation.png", "Education.png"] - имена для 
+            файлов.
+        Raise:
+            - 1. Названия не уникальны.
+            - 2. Какой-нибудь файл уже сущесвует.
+        Return:
+            - None.
+        """
+        if(len(set(namesFiles)) != len(namesFiles) or len(namesFiles) != 5):
+            raise BadNameHeaders("Названия не уникальны или количество имён не равно пяти")
+        
+        
+        os.makedirs(pathForExport, exist_ok=True)
+        
+        files = []
+        
+        for i in namesFiles:
+            file = os.path.join(pathForExport, i)
+            files.append(file)
+        
+        self.export_PngPieBRSO(files[0])
+        
+        self.export_PngPieOTS(files[1])
+           
+        self.export_PngPopularityTests(files[2])
+        
+        self.export_PngMotivation(files[3], files[4])
+        
+        return None
+        
+    @staticmethod
+    def getHeadrsExcelToList(pathToFile: str) -> List[str]:
+        
+        df = pd.read_excel(pathToFile)
+        headers = df.columns.tolist()
+        
+        return headers
+         
+    
     @property
     def dataTable(self) -> pd.DataFrame:
         return self.__data_table
