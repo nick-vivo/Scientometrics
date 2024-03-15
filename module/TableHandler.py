@@ -790,6 +790,8 @@ class TableHandler:
     def export_TableConclusion(self, 
                                nameFileForExport: str = "Сonclusion.xlsx", 
                                pathForExport: str = "./",
+                               nameOriginalForExport: str = "original.xlsx", 
+                               exportOriginal: bool = True,
                                nameHeadersColumn_Sum_Average_Round: List[str] = ["Sum", f"Average {GRADE_CONVERTED}", f"Round {ROUND_FACTOR}"],
                                nameHeadersString_Max_Sum_Average: List[str] = ['Max', 'Sum', 'Average', f"Average {GRADE_CONVERTED}"],
                                nameHeaders_LSI_LTI: List[str] = ["LSI", "LTI"]
@@ -827,9 +829,16 @@ class TableHandler:
         Return:
             - Таблица pd.DataFrame со всеми выводами
         """
+        os.makedirs(pathForExport, exist_ok=True)
+        
         nameColumnStudents = self.__headerStudentsName
         
-        os.makedirs(pathForExport, exist_ok=True)
+        if exportOriginal:
+            fileOriginal = os.path.join(pathForExport, nameOriginalForExport)
+            
+            if os.path.isfile(fileOriginal):
+                raise FileExistsError(f"Файл {fileOriginal} уже существует")
+            self.__data_table.to_excel(fileOriginal, index=False)
         
         file = os.path.join(pathForExport, nameFileForExport)
         
